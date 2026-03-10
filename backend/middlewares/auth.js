@@ -1,5 +1,7 @@
 import jwt from 'jwt-simple';
 import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkahootclonekey';
