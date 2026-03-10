@@ -38,8 +38,8 @@ function AdminDashboard() {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         const [usersRes, quizzesRes] = await Promise.all([
-          axios.get(`${API_URL}/admin/users`, config),
-          axios.get(`${API_URL}/admin/quizzes`, config)
+          axios.get(`${API_URL}/api/admin/users`, config),
+          axios.get(`${API_URL}/api/admin/quizzes`, config)
         ]);
 
         setUsers(usersRes.data);
@@ -66,11 +66,11 @@ function AdminDashboard() {
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
     try {
-      await axios.delete(`${API_URL}/admin/users/${userToDelete.id}`, {
+      await axios.delete(`${API_URL}/api/admin/users/${userToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(users.filter(u => u.id !== userToDelete.id));
-      const quizzesRes = await axios.get(`${API_URL}/admin/quizzes`, {
+      const quizzesRes = await axios.get(`${API_URL}/api/admin/quizzes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuizzes(quizzesRes.data);
@@ -92,7 +92,7 @@ function AdminDashboard() {
   const confirmEditUser = async () => {
     if (!userToEdit) return;
     try {
-      const { data } = await axios.put(`${API_URL}/admin/users/${userToEdit.id}`,
+      const { data } = await axios.put(`${API_URL}/api/admin/users/${userToEdit.id}`,
         { isAdmin: editRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -110,12 +110,12 @@ function AdminDashboard() {
   const confirmDeleteQuiz = async () => {
     if (!quizToDelete) return;
     try {
-      await axios.delete(`${API_URL}/admin/quizzes/${quizToDelete.id}`, {
+      await axios.delete(`${API_URL}/api/admin/quizzes/${quizToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuizzes(quizzes.filter(q => q.id !== quizToDelete.id));
 
-      const usersRes = await axios.get(`${API_URL}/admin/users`, {
+      const usersRes = await axios.get(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(usersRes.data);
