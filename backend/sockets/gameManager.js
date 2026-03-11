@@ -58,6 +58,35 @@ export default function setupSockets(io) {
       socket.emit('joined-game', { pin, name });
     });
 
+    // Host rejoins an active game after disconnect
+    socket.on('rejoin-host', ({ pin, quizId }) => {
+      const game = activeGames.get(pin);
+      if (game && game.quizId === quizId) {
+        if (game.deletionTimer) {
+          clearTimeout(game.deletionTimer);
+          delete game.deletionTimer;
+        }
+        game.hostSocketId = socket.id;
+        socket.join(`game-${pin}`);
+        
+        // Send current game state so host can resume UI
+        socket.emit('host-rejoined', { 
+          pin,
+          state: game.state,
+          currentQuestionIndex: game.currentQuestionIndex,
+          players: game.players,
+          quizId: game.quizId,
+          quizTitle: game.quizTitle,
+          questions: game.questions
+        });
+        
+        io.to(`game-${pin}`).emit('host-reconnected');
+        console.log(`Host rejoined game ${pin}`);
+      } else {
+        socket.emit('rejoin-error', 'Game session could not be recovered.');
+      }
+    });
+
     // Provide game info (title, etc.) before joining or as a sync
     socket.on('get-game-info', ({ pin }) => {
       const game = activeGames.get(pin);
@@ -470,8 +499,18 @@ export default function setupSockets(io) {
     socket.on('disconnect', () => {
       activeGames.forEach((game, pin) => {
         if (game.hostSocketId === socket.id) {
-          io.to(`game-${pin}`).emit('host-disconnected');
-          activeGames.delete(pin);
+          console.log(`Host disconnected from game ${pin}. Waiting for reconnection...`);
+          io.to(`game-${pin}`).emit('host-reconnecting');
+          
+          // Grace period: wait 30s before destroying the game
+          game.deletionTimer = setTimeout(() => {
+            const finalCheck = activeGames.get(pin);
+            if (finalCheck && finalCheck.deletionTimer === game.deletionTimer) {
+              console.log(`Grace period expired for game ${pin}. Deleting.`);
+              io.to(`game-${pin}`).emit('host-disconnected');
+              activeGames.delete(pin);
+            }
+          }, 30000);
         } else {
           const initialLength = game.players.length;
           game.players = game.players.filter(p => p.socketId !== socket.id);

@@ -35,6 +35,7 @@ export default function GameHost() {
   const [showSectionLeaderboard, setShowSectionLeaderboard] = useState(false);
   const [isFirstSectionIntermission, setIsFirstSectionIntermission] = useState(false);
   const [timerKey, setTimerKey] = useState(0);
+  const [hostReconnecting, setHostReconnecting] = useState(false);
 
   // Timer logic
   useEffect(() => {
@@ -85,6 +86,46 @@ export default function GameHost() {
         } else {
           newSocket.once('connect', createGameAction);
         }
+
+        newSocket.on('connect', () => {
+          console.log('Socket connected');
+          setHostReconnecting(false);
+          // If we had a game PIN, try to rejoin
+          if (gamePinRef.current) {
+            newSocket.emit('rejoin-host', { pin: gamePinRef.current, quizId });
+          }
+        });
+
+        newSocket.on('disconnect', () => {
+          console.log('Socket disconnected');
+          setHostReconnecting(true);
+        });
+
+        newSocket.on('host-rejoined', (data) => {
+          console.log('Host session recovered:', data);
+          setHostReconnecting(false);
+          setGameState(data.state);
+          setCurrentQuestionIndex(data.currentQuestionIndex);
+          setPlayers(data.players);
+          setQuizDetails({
+            id: data.quizId,
+            title: data.quizTitle,
+            questions: data.questions
+          });
+        });
+
+        newSocket.on('rejoin-error', (msg) => {
+          console.error('Rejoin failed:', msg);
+          setHostReconnecting(false);
+          // Only show error if we were actually expecting to rejoin
+          if (gamePinRef.current) {
+            setModal({
+              title: 'Session Lost',
+              message: 'Your hosting session expired or could not be recovered.',
+              onClose: () => navigate('/dashboard')
+            });
+          }
+        });
 
         newSocket.on('game-created', ({ pin }) => {
           gamePinRef.current = pin; // Store in ref too
@@ -250,14 +291,16 @@ export default function GameHost() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Render helpers
   if (gameState === 'INIT') return (
     <div className="main-content flex-col items-center justify-center min-h-screen">
       <div style={{ color: 'var(--text-muted)', fontSize: '1.5rem', fontWeight: 600 }}>Loading Game...</div>
     </div>
   );
 
-  if (gameState === 'LOBBY') {
-    return (
+  const renderContent = () => {
+    if (gameState === 'LOBBY') {
+      return (
       <div className="main-content flex-col items-center justify-center min-h-screen text-center slide-up-fade" style={{ width: '100%', padding: '2rem' }}>
         <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}>Join at</h2>
@@ -337,11 +380,11 @@ export default function GameHost() {
           ))}
         </div>
       </div>
-    );
-  }
+      );
+    }
 
-  if (gameState === 'RULES') {
-    return (
+    if (gameState === 'RULES') {
+      return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
         <div className="glass-card" style={{ maxWidth: '800px', width: '100%', padding: '3rem' }}>
           <h1 className="title-xl" style={{ marginBottom: '2rem', fontSize: '2.5rem' }}>How to Play <span style={{ color: 'var(--ans-yellow)' }}>&</span> Win</h1>
@@ -389,63 +432,11 @@ export default function GameHost() {
           </button>
         </div>
       </div>
-    );
-  }
+      );
+    }
 
-
-  if (gameState === 'SECTION_INTERMISSION') {
-    return (
-      <div className="main-content flex-col items-center justify-center min-h-screen" style={{ width: '100%', background: 'linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95)', textAlign: 'center', padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-        {/* Background decoration */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(99,102,241,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139,92,246,0.3) 0%, transparent 50%)', pointerEvents: 'none' }} />
-
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-          {/* Round Over badge */}
-          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', padding: '0.5rem 1.5rem', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem', animation: 'pop-in 0.4s ease-out' }}>
-            Round Complete ✓
-          </div>
-
-          {/* Next round name */}
-          <div style={{ animation: 'pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both' }}>
-            <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, color: 'white', margin: '0 0 0.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.3)', lineHeight: 1.1 }}>
-              Up Next:
-            </h1>
-            <h2 style={{ fontSize: 'clamp(2rem, 6vw, 3.5rem)', fontWeight: 900, color: '#a5b4fc', margin: '0 0 2rem', textShadow: '0 4px 20px rgba(99,102,241,0.5)' }}>
-              {currentSection}
-            </h2>
-          </div>
-
-          {/* Mini leaderboard - hidden for first/last sections */}
-          {showSectionLeaderboard && leaderboard.length > 0 && (
-            <div style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '20px', padding: '1.5rem', marginBottom: '2rem', animation: 'slideUpFade 0.5s ease-out 0.4s both' }}>
-              <h3 style={{ color: 'rgba(255,255,255,0.7)', margin: '0 0 1rem', fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current Leaders</h3>
-              {leaderboard.slice(0, 3).map((p, i) => (
-                <div key={p.socketId || i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', borderRadius: '10px', background: i === 0 ? 'rgba(250,204,21,0.15)' : 'rgba(255,255,255,0.05)', marginBottom: '0.5rem' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: ['#facc15','#94a3b8','#cd7c2f'][i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.1rem', flexShrink: 0 }}>{['🥇','🥈','🥉'][i]}</div>
-                  <div style={{ flex: 1, textAlign: 'left' }}>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: '1rem' }}>{p.name}</div>
-                  </div>
-                  <div style={{ color: i === 0 ? '#facc15' : 'rgba(255,255,255,0.8)', fontWeight: 900, fontSize: '1.2rem' }}>{p.score.toLocaleString()}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={startGame}
-            style={{ padding: '1.25rem 3rem', fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', borderRadius: 'var(--radius-full)', color: 'white', cursor: 'pointer', boxShadow: '0 8px 30px rgba(99,102,241,0.5)', transition: 'transform 0.2s, box-shadow 0.2s', animation: 'pop-in 0.5s ease-out 0.6s both' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(99,102,241,0.7)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(99,102,241,0.5)'; }}
-          >
-            Start {currentSection} →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (gameState === 'PREPARING') {
-    return (
+    if (gameState === 'PREPARING') {
+      return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
         <div className="glass-card" style={{ maxWidth: '800px', width: '100%', textAlign: 'center' }}>
           <h2 style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--text-muted)' }}>Get Ready!</h2>
@@ -472,13 +463,13 @@ export default function GameHost() {
           </div>
         </div>
       </div>
-    );
-  }
+      );
+    }
 
-  if (gameState === 'QUESTION') {
-    return (
-      <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
-        <div style={{ width: '100%', maxWidth: '1000px', textAlign: 'center' }}>
+    if (gameState === 'QUESTION') {
+      return (
+        <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', textAlign: 'center' }}>
           <div className="glass-card" style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', background: 'white', padding: 'clamp(1.5rem, 4vw, 3rem)', maxWidth: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div style={{
@@ -639,9 +630,9 @@ export default function GameHost() {
     );
   }
 
-  if (gameState === 'SECTION_INTERMISSION') {
-    const podiumColors = ['#FEF08A', '#E2E8F0', '#FDE68A']; // Gold, Silver, Bronze
-    return (
+    if (gameState === 'SECTION_INTERMISSION') {
+      const podiumColors = ['#FEF08A', '#E2E8F0', '#FDE68A']; // Gold, Silver, Bronze
+      return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%', background: 'linear-gradient(135deg, var(--color-primary), var(--ans-blue))' }}>
         <div className="glass-card" style={{ maxWidth: '800px', width: '100%', textAlign: 'center', padding: '3rem' }}>
           <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1rem' }}>{isFirstSectionIntermission ? 'Round Begins 🎯' : 'Round Complete ✓'}</div>
@@ -680,10 +671,10 @@ export default function GameHost() {
         </div>
       </div>
     );
-  }
+    }
 
-  if (gameState === 'LEADERBOARD' || gameState === 'FINISHED') {
-    return (
+    if (gameState === 'LEADERBOARD' || gameState === 'FINISHED') {
+      return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
         {gameState === 'FINISHED' && <Confetti recycle={false} numberOfPieces={500} />}
         <div className="glass-card" style={{ maxWidth: '600px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
@@ -730,7 +721,42 @@ export default function GameHost() {
         </div>
       </div>
     );
-  }
+    }
 
-  return null;
+    return null;
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
+      {hostReconnecting && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <Zap className="animate-pulse" size={60} color="var(--ans-yellow)" style={{ margin: '0 auto 1.5rem' }} />
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem' }}>Reconnecting...</h2>
+            <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>Your network connection was lost. Hang tight while we recover your session!</p>
+          </div>
+        </div>
+      )}
+
+      {renderContent()}
+
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div className="glass-card" style={{ maxWidth: '400px', textAlign: 'center', padding: '2.5rem' }}>
+            <h3 className="title-md">{modal.title}</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>{modal.message}</p>
+            <button
+              onClick={() => {
+                modal.onClose?.();
+                setModal(null);
+              }}
+              className="btn-primary"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

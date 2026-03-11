@@ -19,6 +19,8 @@ const io = new Server(httpServer, {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 // Middleware
