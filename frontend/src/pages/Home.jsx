@@ -8,6 +8,18 @@ export default function Home() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlPin = params.get('pin');
+    if (urlPin) {
+      setPin(urlPin);
+      // Auto-join if PIN is valid length
+      if (urlPin.length === 6) {
+        navigate(`/play/${urlPin}`);
+      }
+    }
+  }, [navigate]);
+
   const handleJoin = (e) => {
     e.preventDefault();
     if (pin.trim()) {

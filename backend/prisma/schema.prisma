@@ -33,10 +33,14 @@ model Quiz {
 model Question {
   id            String   @id @default(uuid())
   text          String
+  imageUrl      String?
+  type          String   @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, TRUE_FALSE, TYPE_ANSWER
   options       String   // Stored as JSON string (e.g., '["A", "B", "C", "D"]')
   correctAnswer Int      // Index of the correct option (0-3)
-  timeLimit     Int      @default(20) // Seconds
+  readTime      Int      @default(5)  // Seconds for the "Get Ready" buffer
+  timeLimit     Int      @default(20) // Seconds for answering
   points        Int      @default(1000)
+  section       String?  // Optional section/round name
   quizId        String
   quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }

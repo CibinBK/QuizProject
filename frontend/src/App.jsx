@@ -28,6 +28,7 @@ function App() {
           <Routes>
             {/* Player enters PIN here */}
             <Route path="/" element={<Home />} />
+            <Route path="/join" element={<Home />} />
 
             <Route path="/features" element={<Features />} />
             <Route path="/about" element={<About />} />

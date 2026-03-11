@@ -75,10 +75,14 @@ router.post('/', authMiddleware, async (req, res) => {
         questions: {
           create: questions.map((q) => ({
             text: q.text,
+            imageUrl: q.imageUrl || null,
+            type: q.type || 'MULTIPLE_CHOICE',
             options: JSON.stringify(q.options), // Store as string
             correctAnswer: q.correctAnswer,
-            timeLimit: q.timeLimit || 20,
-            points: q.points || 1000,
+            readTime: q.readTime ?? 5,
+            timeLimit: q.timeLimit ?? 20,
+            points: q.points ?? 1000,
+            section: q.section || null,
           })),
         },
       },
@@ -115,10 +119,14 @@ router.put('/:id', authMiddleware, async (req, res) => {
         questions: {
           create: questions.map((q) => ({
             text: q.text,
+            imageUrl: q.imageUrl || null,
+            type: q.type || 'MULTIPLE_CHOICE',
             options: JSON.stringify(q.options),
             correctAnswer: q.correctAnswer,
-            timeLimit: q.timeLimit || 20,
-            points: q.points || 1000,
+            readTime: q.readTime ?? 5,
+            timeLimit: q.timeLimit ?? 20,
+            points: q.points ?? 1000,
+            section: q.section || null,
           })),
         },
       },
