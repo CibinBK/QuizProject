@@ -168,8 +168,8 @@ export default function GameHost() {
 
           <div style={{ background: '#f8fafc', padding: '2rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Game PIN:</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-              <h1 style={{ fontSize: '5rem', letterSpacing: '4px', margin: 0 }}>{gamePin}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <h1 style={{ fontSize: 'clamp(3rem, 10vw, 5rem)', letterSpacing: '4px', margin: 0, wordBreak: 'break-all', textAlign: 'center' }}>{gamePin}</h1>
               <button
                 onClick={handleCopy}
                 style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
@@ -195,11 +195,11 @@ export default function GameHost() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '1.5rem' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 700, background: 'var(--color-primary)', color: 'white', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)' }}>
               {players.length} Players
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
               <button
                 onClick={() => navigate('/dashboard')}
                 className="btn-primary"
@@ -268,24 +268,22 @@ export default function GameHost() {
     return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
         <div style={{ width: '100%', maxWidth: '1000px', textAlign: 'center' }}>
-          <div className="glass-card" style={{ marginBottom: '2rem', position: 'relative', background: 'white', padding: '3rem', maxWidth: '100%' }}>
-            <div style={{
-              position: 'absolute',
-              left: '30px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '90px', height: '90px', borderRadius: '50%', background: 'var(--color-secondary)',
-              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 900,
-              boxShadow: 'var(--shadow-md)'
-            }}>
-              {timeLeft}
+          <div className="glass-card" style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', background: 'white', padding: 'clamp(1.5rem, 4vw, 3rem)', maxWidth: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{
+                width: '70px', height: '70px', borderRadius: '50%', background: 'var(--color-secondary)',
+                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 900,
+                boxShadow: 'var(--shadow-md)'
+              }}>
+                {timeLeft}
+              </div>
+              <button onClick={showLeaderboard} className="btn-primary" style={{ width: 'auto', padding: '0.75rem 1.5rem', background: 'var(--color-primary)', fontSize: '1.1rem' }}>
+                Next
+              </button>
             </div>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 80px', lineHeight: 1.2, color: 'var(--text-main)' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 800, margin: 0, lineHeight: 1.3, color: 'var(--text-main)', wordBreak: 'break-word' }}>
               {currentQuestion?.text}
             </h2>
-            <button onClick={showLeaderboard} className="btn-primary" style={{ width: 'auto', position: 'absolute', right: '30px', top: '50%', transform: 'translateY(-50%)', padding: '0.75rem 1.5rem', background: 'var(--color-primary)', fontSize: '1.1rem' }}>
-              Next
-            </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>

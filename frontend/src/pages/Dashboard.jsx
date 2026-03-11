@@ -319,8 +319,8 @@ export default function Dashboard() {
               </span>
             </div>
             {newQuiz.questions.map((q, qIndex) => (
-              <div key={qIndex} style={{ background: 'white', padding: '2rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
+              <div key={qIndex} style={{ background: 'white', padding: 'clamp(1rem, 3vw, 2rem)', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <h4 style={{ margin: 0, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ background: '#e0e7ff', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>{qIndex + 1}</span>
                     Question
@@ -357,7 +357,7 @@ export default function Dashboard() {
                           placeholder={`Option ${optIndex + 1}`}
                           value={opt}
                           onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
-                          style={{ marginBottom: 0, border: 'none', background: 'transparent', padding: '0.5rem', flex: 1 }}
+                          style={{ marginBottom: 0, border: 'none', background: 'transparent', padding: '0.5rem', flex: 1, minWidth: 0 }}
                         />
                         {q.options.length > 2 && (
                           <button
@@ -411,7 +411,7 @@ export default function Dashboard() {
               <span style={{ fontSize: '1.25rem', fontWeight: 800, marginRight: '0.5rem' }}>+</span> Add New Question
             </button>
 
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div className="grid-mobile-stack" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button onClick={() => { setShowQuizForm(false); resetQuizForm(); }} className="btn-primary" style={{ width: 'auto', background: 'white', color: 'var(--text-main)', border: '1px solid #cbd5e1', boxShadow: 'none' }}>
                 Cancel
               </button>
