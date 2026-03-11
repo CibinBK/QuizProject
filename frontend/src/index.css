@@ -328,3 +328,36 @@ body {
   background: rgba(244, 63, 94, 0.2); /* Accent color blur */
   animation: floatBackground 18s infinite ease-in-out;
 }
+
+/* Mobile Responsive Utilities */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .glass-card {
+    padding: 1.5rem;
+  }
+  
+  .title-xl {
+    font-size: 2rem;
+  }
+  
+  /* Stack grid layouts on mobile */
+  .grid-mobile-stack {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Make table rows slightly more legible on small screens */
+  table th, table td {
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.9rem;
+  }
+}

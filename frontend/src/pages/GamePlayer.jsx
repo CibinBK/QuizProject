@@ -16,6 +16,7 @@ export default function GamePlayer() {
   const [gameState, setGameState] = useState('JOINING'); // JOINING, WAITING, QUESTION, ANSWERED, RESULT, FINISHED
 
   const [quizTitle, setQuizTitle] = useState('');
+  const [players, setPlayers] = useState([]); // New state for lobby players
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [answerResult, setAnswerResult] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -42,6 +43,15 @@ export default function GamePlayer() {
     newSocket.on('joined-game', () => {
       setHasJoined(true);
       setGameState('WAITING');
+    });
+
+    // Listen for new players joining the lobby, just like the host does
+    newSocket.on('player-joined', (updatedPlayers) => {
+      setPlayers(updatedPlayers);
+    });
+
+    newSocket.on('player-left', (updatedPlayers) => {
+      setPlayers(updatedPlayers);
     });
 
     newSocket.on('game-info', ({ title }) => {
@@ -178,13 +188,60 @@ export default function GamePlayer() {
 
   if (gameState === 'WAITING') {
     return (
-      <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', color: 'white', animation: 'pulse-glow 2s infinite' }}>
+      <div className="main-content flex-col items-center justify-start min-h-screen slide-up-fade" style={{ width: '100%', paddingTop: '100px' }}>
+        <h2 style={{ fontSize: '2.5rem', color: 'white', marginBottom: '0.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
           You're in!
         </h2>
-        <p style={{ color: 'white', opacity: 0.8, marginTop: '1rem', fontSize: '1.25rem' }}>
-          See your nickname on screen
+        <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem', marginBottom: '3rem', fontWeight: 500 }}>
+          Waiting for the host to start the game...
         </p>
+        
+        <div style={{
+          width: '100%',
+          maxWidth: '800px',
+          background: 'rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '2rem',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '1rem' }}>
+            <h3 style={{ color: 'white', fontSize: '1.5rem', margin: 0, fontWeight: 700 }}>Players in Lobby</h3>
+            <span style={{ background: 'var(--color-secondary)', color: 'white', padding: '0.25rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: 800, fontSize: '1.2rem' }}>
+              {players.length}
+            </span>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '1rem'
+          }}>
+            {players.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'rgba(255,255,255,0.7)', padding: '2rem 0' }}>
+                You are the first one here!
+              </div>
+            ) : (
+              players.map((p, i) => (
+                <div key={i} className="pop-in" style={{
+                  background: p.socketId === socket.id ? 'var(--color-primary)' : 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  padding: '1rem',
+                  borderRadius: 'var(--radius-md)',
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                  boxShadow: p.socketId === socket.id ? '0 0 15px rgba(67, 56, 202, 0.6)' : 'none',
+                  border: p.socketId === socket.id ? '2px solid rgba(255,255,255,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                  transition: 'all 0.3s'
+                }}>
+                  {p.name} {p.socketId === socket.id && <span style={{ fontSize: '0.8rem', opacity: 0.8, display: 'block', marginTop: '4px' }}>(You)</span>}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -324,16 +381,25 @@ export default function GamePlayer() {
         background: isCorrect ? 'var(--ans-green)' : 'var(--ans-red)',
         position: 'absolute',
         top: 0,
-        left: 0
+        left: 0,
+        padding: '2rem'
       }}>
-        <h1 style={{ fontSize: '4rem', color: 'white', marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '4rem', color: 'white', marginBottom: '1rem', animation: 'pop-in 0.3s' }}>
           {isCorrect ? 'Correct!' : 'Incorrect'}
         </h1>
-        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem 2rem', borderRadius: 'var(--radius-full)' }}>
+        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem 2rem', borderRadius: 'var(--radius-full)', marginBottom: '2rem' }}>
           <span style={{ fontSize: '1.5rem', color: 'white', fontWeight: 700 }}>
             Score: {answerResult?.currentScore}
           </span>
         </div>
+        {!isCorrect && typeof answerResult?.correctAnswer === 'number' && currentQuestion?.options && (
+          <div className="glass-card slide-up-fade" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', padding: '1.5rem', maxWidth: '400px', width: '100%' }}>
+            <h3 style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600 }}>The correct answer was:</h3>
+            <p style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
+              {currentQuestion.options[answerResult.correctAnswer]}
+            </p>
+          </div>
+        )}
       </div>
     );
   }

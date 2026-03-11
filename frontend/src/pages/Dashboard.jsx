@@ -227,12 +227,12 @@ export default function Dashboard() {
       <div className="glass-card" style={{ maxWidth: '1000px', width: '100%', margin: '0 auto', background: 'rgba(255, 255, 255, 0.98)' }}>
 
         {/* Header Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.1)', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h2 className="title-xl" style={{ margin: 0, textAlign: 'left', fontWeight: 800 }}>Dashboard</h2>
             <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '1.1rem' }}>Manage your quizzes and host live games.</p>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 600, color: 'var(--text-main)', padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: 'var(--radius-full)' }}>
               👋 {user?.username}
             </span>
@@ -380,8 +380,8 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', background: '#f8fafc', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="grid-mobile-stack" style={{ display: 'flex', alignItems: 'center', gap: '2rem', background: '#f8fafc', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Time Limit (sec)</label>
                     <input
                       type="number"
@@ -392,7 +392,7 @@ export default function Dashboard() {
                       style={{ width: '100px', marginBottom: 0, padding: '0.5rem', textAlign: 'center' }}
                     />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Points</label>
                     <input
                       type="number"

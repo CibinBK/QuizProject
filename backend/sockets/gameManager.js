@@ -59,8 +59,8 @@ export default function setupSockets(io) {
       // Notify player they joined successfully
       socket.emit('joined-game', { pin, name });
       
-      // Notify host that a player joined
-      io.to(game.hostSocketId).emit('player-joined', game.players);
+      // Notify everyone in the lobby that a player joined
+      io.to(`game-${pin}`).emit('player-joined', game.players);
     });
 
     // Provide game info (like title) before player joins
@@ -168,7 +168,11 @@ export default function setupSockets(io) {
       });
       
       // Send result back to player
-      socket.emit('answer-result', { isCorrect, currentScore: player.score });
+      socket.emit('answer-result', { 
+        isCorrect, 
+        currentScore: player.score,
+        correctAnswer: currentQ.correctAnswer 
+      });
 
       // Track answers for auto-transition
       game.answersReceived = game.answersReceived || new Set();
@@ -216,7 +220,7 @@ export default function setupSockets(io) {
           const initialLength = game.players.length;
           game.players = game.players.filter(p => p.socketId !== socket.id);
           if (game.players.length < initialLength) {
-             io.to(game.hostSocketId).emit('player-left', game.players);
+             io.to(`game-${pin}`).emit('player-left', game.players);
           }
         }
       });

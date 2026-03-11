@@ -138,12 +138,12 @@ function AdminDashboard() {
   return (
     <div className="main-content flex-col min-h-screen" style={{ paddingTop: '4rem', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="title-xl" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Admin Dashboard</h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.2rem' }}>Welcome, Master {currentUser?.username}</p>
+          <h1 className="title-xl" style={{ fontSize: 'var(--title-size, 2.5rem)', marginBottom: '0.5rem', textAlign: 'left' }}>Admin Dashboard</h1>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.2rem', margin: 0 }}>Welcome, Master {currentUser?.username}</p>
         </div>
-        <button onClick={handleLogout} className="btn-primary" style={{ width: 'auto', background: 'white', color: 'var(--color-primary)' }}>
+        <button onClick={handleLogout} className="btn-primary" style={{ width: 'auto', background: 'white', color: 'var(--color-primary)', padding: '0.75rem 1.5rem' }}>
           Logout
         </button>
       </div>
@@ -168,8 +168,8 @@ function AdminDashboard() {
       {activeTab === 'users' && (
         <div className="glass-card" style={{ width: '100%', maxWidth: '1000px', padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>Registered Users ({users.length})</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '1rem', color: 'var(--text-muted)' }}>ID</th>
@@ -221,8 +221,8 @@ function AdminDashboard() {
       {activeTab === 'quizzes' && (
         <div className="glass-card" style={{ width: '100%', maxWidth: '1000px', padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>All Quizzes ({quizzes.length})</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '1rem', color: 'var(--text-muted)' }}>Quiz ID</th>
