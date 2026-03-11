@@ -329,6 +329,10 @@ body {
   animation: floatBackground 18s infinite ease-in-out;
 }
 
+html {
+  font-size: clamp(10px, 2.5vw + 6px, 16px);
+}
+
 /* Mobile Responsive Utilities */
 .table-responsive {
   width: 100%;
@@ -337,24 +341,6 @@ body {
 }
 
 @media (max-width: 768px) {
-  .main-content {
-    padding: 1rem;
-  }
-  
-  .glass-card {
-    padding: 1.5rem;
-  }
-  
-  .title-xl {
-    font-size: 2rem;
-  }
-  
-  /* Stack grid layouts on mobile */
-  .grid-mobile-stack {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  
   /* Make table rows slightly more legible on small screens */
   table th, table td {
     padding: 0.75rem 0.5rem !important;

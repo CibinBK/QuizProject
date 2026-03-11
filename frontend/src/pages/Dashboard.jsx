@@ -319,8 +319,8 @@ export default function Dashboard() {
               </span>
             </div>
             {newQuiz.questions.map((q, qIndex) => (
-              <div key={qIndex} style={{ background: 'white', padding: 'clamp(1rem, 3vw, 2rem)', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div key={qIndex} style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center', gap: '1rem' }}>
                   <h4 style={{ margin: 0, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ background: '#e0e7ff', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>{qIndex + 1}</span>
                     Question
@@ -339,7 +339,7 @@ export default function Dashboard() {
                   style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}
                 />
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
                   {q.options.map((opt, optIndex) => (
                     <div key={optIndex} style={{ display: 'flex', position: 'relative' }}>
                       <div style={{ display: 'flex', alignItems: 'center', width: '100%', background: q.correctAnswer === optIndex ? '#f0fdf4' : '#f8fafc', border: `2px solid ${q.correctAnswer === optIndex ? 'var(--ans-green)' : '#e2e8f0'}`, borderRadius: 'var(--radius-md)', padding: '0.5rem', transition: 'all 0.2s' }}>
@@ -380,27 +380,27 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                <div className="grid-mobile-stack" style={{ display: 'flex', alignItems: 'center', gap: '2rem', background: '#f8fafc', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Time Limit (sec)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '0.5rem', flex: 1 }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Time</label>
                     <input
                       type="number"
                       value={q.timeLimit}
                       onChange={(e) => updateQuestion(qIndex, 'timeLimit', parseInt(e.target.value) || 20)}
                       min="5" max="120"
                       className="input-field"
-                      style={{ width: '100px', marginBottom: 0, padding: '0.5rem', textAlign: 'center' }}
+                      style={{ width: '100%', maxWidth: '80px', marginBottom: 0, padding: '0.5rem', textAlign: 'center' }}
                     />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Points</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '0.5rem', flex: 1 }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)' }}>Pts</label>
                     <input
                       type="number"
                       value={q.points}
                       onChange={(e) => updateQuestion(qIndex, 'points', parseInt(e.target.value) || 1000)}
                       step="100" min="0" max="2000"
                       className="input-field"
-                      style={{ width: '120px', marginBottom: 0, padding: '0.5rem', textAlign: 'center' }}
+                      style={{ width: '100%', maxWidth: '80px', marginBottom: 0, padding: '0.5rem', textAlign: 'center' }}
                     />
                   </div>
                 </div>
@@ -411,7 +411,7 @@ export default function Dashboard() {
               <span style={{ fontSize: '1.25rem', fontWeight: 800, marginRight: '0.5rem' }}>+</span> Add New Question
             </button>
 
-            <div className="grid-mobile-stack" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button onClick={() => { setShowQuizForm(false); resetQuizForm(); }} className="btn-primary" style={{ width: 'auto', background: 'white', color: 'var(--text-main)', border: '1px solid #cbd5e1', boxShadow: 'none' }}>
                 Cancel
               </button>
