@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Rocket, Zap, Trophy } from 'lucide-react';
 import io from 'socket.io-client';
@@ -39,7 +39,14 @@ export default function GamePlayer() {
   const [showSectionLeaderboard, setShowSectionLeaderboard] = useState(false);
   const [isFirstSectionIntermission, setIsFirstSectionIntermission] = useState(false);
   const [timerKey, setTimerKey] = useState(0); // increment to force timer restart
+  const [playerReconnecting, setPlayerReconnecting] = useState(false);
+  const [hostReconnecting, setHostReconnecting] = useState(false);
   
+  // Refs for socket events
+  const socketRef = useRef(null);
+  const pinRef = useRef(pin);
+  const nameRef = useRef('');
+
   const [burstedBubbles, setBurstedBubbles] = useState(new Set());
   const [bubbleResets, setBubbleResets] = useState({});
 
@@ -75,13 +82,46 @@ export default function GamePlayer() {
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
+    socketRef.current = newSocket;
     setSocket(newSocket);
 
-    newSocket.on('joined-game', ({ name: joinedName }) => {
+    newSocket.on('connect', () => {
+      console.log('Socket connected');
+      setPlayerReconnecting(false);
+      // If we had already joined, try to rejoin
+      if (hasJoined && nameRef.current) {
+        newSocket.emit('join-game', { pin: pinRef.current, name: nameRef.current });
+      } else {
+        // Just get basic info if not joined yet
+        newSocket.emit('get-game-info', { pin: pinRef.current });
+      }
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setPlayerReconnecting(true);
+    });
+
+    newSocket.on('joined-game', ({ name: joinedName, recovered }) => {
       setHasJoined(true);
       setGameState('WAITING');
       setIsJoining(false);
-      if (joinedName) setName(joinedName);
+      setPlayerReconnecting(false);
+      if (joinedName) {
+        setName(joinedName);
+        nameRef.current = joinedName;
+      }
+      if (recovered) {
+        console.log('Player session recovered');
+      }
+    });
+
+    newSocket.on('host-reconnecting', () => {
+      setHostReconnecting(true);
+    });
+
+    newSocket.on('host-reconnected', () => {
+      setHostReconnecting(false);
     });
 
     // Listen for new players joining the lobby, just like the host does
@@ -116,14 +156,15 @@ export default function GamePlayer() {
       setModal({
         title: 'Game Over',
         message: 'The host has disconnected. Returning to home...',
-        type: 'error'
+        type: 'error',
+        onClose: () => navigate('/')
       });
     });
 
-    // ... existing on('new-question'), on('answer-result'), etc.
     newSocket.on('show-rules', ({ hasBuzzerRound } = {}) => {
       setHasBuzzerRound(!!hasBuzzerRound);
       setGameState('RULES');
+      setHostReconnecting(false);
     });
 
     newSocket.on('prepare-question', (qData) => {
@@ -133,6 +174,7 @@ export default function GamePlayer() {
       setBuzzerWinner(null); // Reset buzzer winner for the next question
       setTimerKey(k => k + 1); // force timer restart
       setTimeLeft(qData.readTime || 5);
+      setHostReconnecting(false);
     });
 
     newSocket.on('new-question', (qData) => {
@@ -145,6 +187,7 @@ export default function GamePlayer() {
       setBuzzerResult(null);
       setTimerKey(k => k + 1); // force timer restart
       setTimeLeft(qData.timeLimit);
+      setHostReconnecting(false);
     });
 
     newSocket.on('buzzer-winner', ({ name: playerWhoBuzzed, avatar }) => {
@@ -239,10 +282,11 @@ export default function GamePlayer() {
 
   const handleJoin = (e) => {
     e.preventDefault();
-    if (name.trim() && socket && !isJoining) {
+    if (name.trim() && socketRef.current && !isJoining) {
       setError('');
       setIsJoining(true);
-      socket.emit('join-game', { pin, name });
+      nameRef.current = name;
+      socketRef.current.emit('join-game', { pin, name });
     }
   };
 
@@ -263,7 +307,8 @@ export default function GamePlayer() {
     }
   };
 
-  if (!hasJoined || gameState === 'JOINING') {
+  const renderContent = () => {
+    if (!hasJoined || gameState === 'JOINING') {
     return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%' }}>
         <div className="glass-card" style={{ maxWidth: '400px', width: '100%' }}>
@@ -940,4 +985,54 @@ export default function GamePlayer() {
   }
 
   return null;
+};
+
+return (
+  <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
+      {/* Player Reconnecting Overlay */}
+      {playerReconnecting && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(3, 7, 18, 0.9)', backdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', maxWidth: '500px' }}>
+            <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 2rem' }}>
+              <Zap className="animate-pulse" size={80} color="var(--ans-yellow)" fill="var(--ans-yellow)" />
+              <div style={{ position: 'absolute', inset: 0, border: '4px solid var(--ans-yellow)', borderRadius: '50%', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.5 }}></div>
+            </div>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: 'white' }}>Reconnecting...</h2>
+            <p style={{ opacity: 0.8, fontSize: '1.2rem', color: '#cbd5e1', lineHeight: 1.6 }}>Your network connection was lost. Hang tight while we restore your session!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Host Reconnecting Overlay */}
+      {hostReconnecting && !playerReconnecting && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(3, 7, 18, 0.6)', backdropFilter: 'blur(4px)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '2rem 3rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.1)', maxWidth: '400px' }}>
+            <Zap className="animate-pulse" size={40} color="var(--ans-yellow)" style={{ margin: '0 auto 1rem' }} />
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', marginBottom: '0.5rem' }}>Host Disconnected</h3>
+            <p style={{ opacity: 0.9, fontSize: '1rem', color: 'white' }}>The host is reconnecting... the game will resume shortly!</p>
+          </div>
+        </div>
+      )}
+
+      {renderContent()}
+
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div className="glass-card" style={{ maxWidth: '400px', textAlign: 'center', padding: '2.5rem' }}>
+            <h3 className="title-md">{modal.title}</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>{modal.message}</p>
+            <button
+              onClick={() => {
+                modal.onClose?.();
+                setModal(null);
+              }}
+              className="btn-primary"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -33,12 +33,26 @@ export default function setupSockets(io) {
       if (!game) {
         return socket.emit('join-error', 'Game not found. Please check your PIN.');
       }
+      const playerEntry = game.players.find((p) => p.name === name);
+      
+      // Handle Reconnection during Active Game
       if (game.state !== 'LOBBY') {
-        return socket.emit('join-error', 'Game has already started. You cannot join now.');
+        if (playerEntry) {
+          // Update socket ID and join room
+          playerEntry.socketId = socket.id;
+          socket.join(`game-${pin}`);
+          
+          socket.emit('joined-game', { pin, name, recovered: true, score: playerEntry.score, streak: playerEntry.streak });
+          io.to(`game-${pin}`).emit('player-reconnected', { name, players: game.players });
+          console.log(`Player ${name} reconnected to game ${pin}`);
+          return;
+        } else {
+          return socket.emit('join-error', 'Game has already started. You cannot join as a new player.');
+        }
       }
 
-      const playerExists = game.players.some((p) => p.name === name);
-      if (playerExists) {
+      // Standard Lobby Join
+      if (playerEntry) {
         return socket.emit('join-error', 'That nickname is already taken in this lobby.');
       }
 
@@ -512,10 +526,14 @@ export default function setupSockets(io) {
             }
           }, 30000);
         } else {
-          const initialLength = game.players.length;
-          game.players = game.players.filter(p => p.socketId !== socket.id);
-          if (game.players.length < initialLength) {
-             io.to(`game-${pin}`).emit('player-left', game.players);
+          // If in lobby, remove player immediately so they don't block the name
+          // If in active game, keep the entry so they can reconnect later
+          if (game.state === 'LOBBY') {
+            const initialLength = game.players.length;
+            game.players = game.players.filter(p => p.socketId !== socket.id);
+            if (game.players.length < initialLength) {
+               io.to(`game-${pin}`).emit('player-left', game.players);
+            }
           }
         }
       });

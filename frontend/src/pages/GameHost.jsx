@@ -634,12 +634,12 @@ export default function GameHost() {
       const podiumColors = ['#FEF08A', '#E2E8F0', '#FDE68A']; // Gold, Silver, Bronze
       return (
       <div className="main-content flex-col items-center justify-center min-h-screen slide-up-fade" style={{ width: '100%', background: 'linear-gradient(135deg, var(--color-primary), var(--ans-blue))' }}>
-        <div className="glass-card" style={{ maxWidth: '800px', width: '100%', textAlign: 'center', padding: '3rem' }}>
-          <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1rem' }}>{isFirstSectionIntermission ? 'Round Begins 🎯' : 'Round Complete ✓'}</div>
-          <h1 style={{ fontSize: '4rem', fontWeight: 900, color: 'white', marginBottom: '3rem', textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>{currentSection}</h1>
+        <div className="glass-card" style={{ maxWidth: '800px', width: '100%', textAlign: 'center', padding: '3rem', background: 'rgba(255, 255, 255, 0.95)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' }}>{isFirstSectionIntermission ? 'Round Begins 🎯' : 'Round Complete ✓'}</div>
+          <h1 style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--color-primary)', marginBottom: '2.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>{currentSection}</h1>
           
-          <h2 style={{ fontSize: '1.5rem', color: 'white', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <Trophy size={24} color="var(--ans-yellow)" /> Round Standings
+          <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontWeight: 800 }}>
+            <Trophy size={28} color="var(--ans-yellow)" fill="var(--ans-yellow)" /> Round Standings
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
@@ -729,11 +729,14 @@ export default function GameHost() {
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
       {hostReconnecting && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-          <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-            <Zap className="animate-pulse" size={60} color="var(--ans-yellow)" style={{ margin: '0 auto 1.5rem' }} />
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem' }}>Reconnecting...</h2>
-            <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>Your network connection was lost. Hang tight while we recover your session!</p>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(3, 7, 18, 0.9)', backdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', maxWidth: '500px' }}>
+            <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 2rem' }}>
+              <Zap className="animate-pulse" size={80} color="var(--ans-yellow)" fill="var(--ans-yellow)" />
+              <div style={{ position: 'absolute', inset: 0, border: '4px solid var(--ans-yellow)', borderRadius: '50%', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.5 }}></div>
+            </div>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: 'white' }}>Reconnecting...</h2>
+            <p style={{ opacity: 0.8, fontSize: '1.2rem', color: '#cbd5e1', lineHeight: 1.6 }}>Your network connection was lost. Hang tight while we recover your session!</p>
           </div>
         </div>
       )}
